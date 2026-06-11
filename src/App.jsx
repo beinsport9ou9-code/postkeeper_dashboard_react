@@ -838,14 +838,29 @@ function MediaPreview({ url, type, compact = false }) {
 
   if (isVideo(type, url)) {
     if (compact) {
+      if (!inView) {
+        return (
+          <div ref={ref} className="mediaPlaceholder compact skeletonMedia">
+            <Video size={24} />
+            <span>Video</span>
+          </div>
+        )
+      }
+
       return (
-        <div ref={ref} className="mediaWrap compact videoPreview">
-          <video src={url} muted preload="metadata" playsInline />
-          <div className="videoPreviewBadge"><PlayCircle size={28} /><span>Video</span></div>
+        <div ref={ref} className="mediaWrap compact realVideoCard">
+          <video
+            src={url}
+            muted
+            controls
+            preload="metadata"
+            playsInline
+            webkit-playsinline="true"
+          />
         </div>
       )
     }
-    return <div ref={ref} className="mediaWrap"><video src={url} controls preload="metadata" playsInline /></div>
+    return <div ref={ref} className="mediaWrap"><video src={url} controls preload="metadata" playsInline webkit-playsinline="true" /></div>
   }
 
   return (

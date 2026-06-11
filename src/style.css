@@ -807,3 +807,34 @@ body {
   border: 1px solid rgba(255,255,255,.24);
   backdrop-filter: blur(16px);
 }
+
+
+/* =========================================================
+   v8.3 Real video cards
+   Shows an actual iOS video player inside cards instead
+   of the grey video placeholder.
+   ========================================================= */
+
+.realVideoCard {
+  background: #eef2f7;
+}
+
+.realVideoCard video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  object-fit: cover;
+  background: #e8edf5;
+}
+
+@media (max-width: 920px) {
+  .realVideoCard video {
+    min-height: 310px;
+  }
+}
+
+/* Hide old overlay if browser cached older class combination */
+.realVideoCard .videoPreviewBadge {
+  display: none !important;
+}
