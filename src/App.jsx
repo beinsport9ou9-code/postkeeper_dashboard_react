@@ -1,5 +1,5 @@
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import {
   Search, LayoutDashboard, LibraryBig, Star, RefreshCw, HeartPulse, Sparkles,
@@ -588,12 +588,23 @@ function DashboardView({ stats, topics, accounts, recentPosts, studioPosts, onTa
 }
 
 function LibraryView({ title, subtitle, posts, total, viewMode, setViewMode, onPost, resetFilters }) {
+  const INITIAL_VISIBLE = 18
+  const STEP_VISIBLE = 18
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE)
+
+  useEffect(() => {
+    setVisibleCount(INITIAL_VISIBLE)
+  }, [posts, viewMode])
+
+  const visiblePosts = posts.slice(0, visibleCount)
+  const hasMore = visibleCount < posts.length
+
   return (
     <section className="pageWrap">
       <div className="libraryHeader">
         <div>
           <h3>{title}</h3>
-          <p>{posts.length} result(s) from {total}. Advanced filters are in Controls.</p>
+          <p>{posts.length} result(s) from {total}. Showing {Math.min(visibleCount, posts.length)} first for faster mobile loading.</p>
         </div>
         <div>
           <button className="lightBtn" onClick={() => setViewMode(viewMode === 'cards' ? 'compact' : 'cards')}>
@@ -605,9 +616,13 @@ function LibraryView({ title, subtitle, posts, total, viewMode, setViewMode, onP
       </div>
 
       {posts.length === 0 ? <EmptyState title="No matching posts" text="Clear filters from Controls." /> : (
-        viewMode === 'compact'
-          ? <div className="compactResults">{posts.map(post => <CompactRow key={post.id} post={post} onOpen={() => onPost(post)} />)}</div>
-          : <div className="postGrid">{posts.map(post => <PostCard key={post.id} post={post} onOpen={() => onPost(post)} />)}</div>
+        <>
+          {viewMode === 'compact'
+            ? <div className="compactResults">{visiblePosts.map(post => <CompactRow key={post.id} post={post} onOpen={() => onPost(post)} />)}</div>
+            : <div className="postGrid">{visiblePosts.map(post => <PostCard key={post.id} post={post} onOpen={() => onPost(post)} />)}</div>
+          }
+          {hasMore && <div className="loadMoreWrap"><button className="loadMoreBtn" onClick={() => setVisibleCount(count => count + STEP_VISIBLE)}>Load more posts</button></div>}
+        </>
       )}
     </section>
   )
@@ -795,9 +810,49 @@ function StudioSnippet({ label, value }) {
 }
 
 function MediaPreview({ url, type, compact = false }) {
-  if (!url) return <div className={`mediaPlaceholder ${compact ? 'compact' : ''}`}><ImageIcon size={28} /><span>No media</span></div>
-  if (isVideo(type, url)) return <div className={`mediaWrap ${compact ? 'compact' : ''}`}><video src={url} controls={!compact} muted={compact} />{compact && <div className="videoPill"><PlayCircle size={15} /> Video</div>}</div>
-  return <div className={`mediaWrap ${compact ? 'compact' : ''}`}><img src={url} alt="Saved media" loading="lazy" /></div>
+  const ref = useRef(null)
+  const [inView, setInView] = useState(!compact)
+
+  useEffect(() => {
+    if (!compact || inView) return
+    const node = ref.current
+    if (!node) return
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0]?.isIntersecting) {
+          setInView(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '360px 0px' }
+    )
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [compact, inView])
+
+  if (!url) return <div ref={ref} className={`mediaPlaceholder ${compact ? 'compact' : ''}`}><ImageIcon size={28} /><span>No media</span></div>
+
+  if (compact && !inView) {
+    return <div ref={ref} className="mediaPlaceholder compact skeletonMedia"><ImageIcon size={24} /><span>Loading media</span></div>
+  }
+
+  if (isVideo(type, url)) {
+    if (compact) {
+      return (
+        <div ref={ref} className="mediaWrap compact videoPreview">
+          <video src={url} muted preload="metadata" playsInline />
+          <div className="videoPreviewBadge"><PlayCircle size={28} /><span>Video</span></div>
+        </div>
+      )
+    }
+    return <div ref={ref} className="mediaWrap"><video src={url} controls preload="metadata" playsInline /></div>
+  }
+
+  return (
+    <div ref={ref} className={`mediaWrap ${compact ? 'compact' : ''}`}>
+      <img src={url} alt="Saved media" loading="lazy" decoding="async" fetchPriority="low" />
+    </div>
+  )
 }
 
 function PostModal({ post, onClose, onUpdate }) {
