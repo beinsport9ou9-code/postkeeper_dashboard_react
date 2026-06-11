@@ -436,3 +436,280 @@ a { color: inherit; text-decoration: none; }
 .badge.platform { background: rgba(124,58,237,.14); color: var(--violet); }
 .badge.archive { background: rgba(112,107,125,.14); color: var(--muted); }
 .badge.workspace { background: rgba(245,181,68,.18); color: #b57900; }
+
+
+/* =========================================================
+   v8 iPhone-like UI polish
+   Goal: app-style, softer, more mobile-friendly, no DB changes.
+   ========================================================= */
+
+:root {
+  --iosBlur: saturate(180%) blur(22px);
+  --iosRadius: 28px;
+  --iosRadiusSmall: 18px;
+  --iosShadow: 0 18px 45px rgba(39, 35, 58, .11);
+  --iosShadowSoft: 0 8px 24px rgba(39, 35, 58, .08);
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 15% 3%, rgba(124,58,237,.16), transparent 26rem),
+    radial-gradient(circle at 90% 8%, rgba(0,169,157,.14), transparent 28rem),
+    linear-gradient(145deg, #fbfbff 0%, #f6f1ff 45%, #fff8ee 100%);
+}
+
+:root[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at 15% 3%, rgba(124,58,237,.20), transparent 26rem),
+    radial-gradient(circle at 90% 8%, rgba(0,169,157,.16), transparent 28rem),
+    linear-gradient(145deg, #080812 0%, #111827 50%, #15111f 100%);
+}
+
+.sidebar {
+  width: 248px;
+  padding: 20px 18px;
+  background: rgba(17, 18, 32, .86);
+  backdrop-filter: var(--iosBlur);
+  border-right: 1px solid rgba(255,255,255,.10);
+}
+.brandMark {
+  border-radius: 22px;
+  background: linear-gradient(145deg, #7c3aed, #22e0c4);
+  box-shadow: 0 14px 34px rgba(34,224,196,.20);
+}
+.brandWrap h1 { font-size: 23px; letter-spacing: -.055em; }
+.brandWrap p { font-size: 12px; }
+
+.sidebarNav button, .sidebarSettings {
+  border-radius: 18px;
+  min-height: 48px;
+}
+.sidebarNav button.active {
+  background: rgba(255,255,255,.16);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
+}
+.sidebarGlowCard {
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 80% 8%, rgba(255,255,255,.26), transparent 6rem),
+    linear-gradient(145deg, #ff6b5f, #7c3aed 78%);
+}
+
+.mainArea { padding: 24px; }
+.pageWrap { max-width: 1440px; margin: 0 auto; }
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 35;
+  padding: 10px 0 16px;
+  backdrop-filter: blur(0px);
+}
+.topbar h2 { font-size: clamp(30px, 4vw, 44px); letter-spacing: -.075em; }
+.topbar p { font-size: 14px; }
+
+.topSearch {
+  min-height: 46px;
+  background: rgba(255,255,255,.72);
+  border-color: rgba(20,20,40,.08);
+  box-shadow: var(--iosShadowSoft);
+}
+:root[data-theme="dark"] .topSearch { background: rgba(23, 21, 40, .72); }
+.topSearch input { font-size: 15px; }
+
+.iconBtn, .refreshBtn, .settingsBtn, .lightBtn, .cardActions a, .cardActions button, .primarySmall, .markBtn, .ghostLink, .editBtn, .saveBtn, .actionButtons button, .actionButtons a, .downloadBtn, .studioHead button, .resetBtn {
+  border-radius: 999px;
+  min-height: 42px;
+  box-shadow: var(--iosShadowSoft);
+}
+.settingsBtn { background: linear-gradient(135deg, #7c3aed, #0ea5a4); }
+.refreshBtn { background: rgba(255,255,255,.76); }
+:root[data-theme="dark"] .refreshBtn { background: rgba(23, 21, 40, .76); }
+
+.heroMain {
+  border-radius: 38px;
+  min-height: 300px;
+  padding: 32px;
+  background:
+    radial-gradient(circle at 78% 12%, rgba(34,224,196,.46), transparent 20rem),
+    radial-gradient(circle at 15% 85%, rgba(255,107,95,.28), transparent 18rem),
+    linear-gradient(145deg, #171528, #34225c 54%, #036c67);
+}
+.heroMain h3 { max-width: 780px; }
+.heroActions button { min-height: 46px; border-radius: 999px; }
+
+.orbCard, .metricCard, .glassPanel, .libraryHeader, .postCard, .compactRow, .studioCard, .studioSnippet, .modalPanel {
+  border-radius: var(--iosRadius);
+  box-shadow: var(--iosShadow);
+  border-color: rgba(42, 35, 64, .09);
+}
+:root[data-theme="dark"] .orbCard,
+:root[data-theme="dark"] .metricCard,
+:root[data-theme="dark"] .glassPanel,
+:root[data-theme="dark"] .libraryHeader,
+:root[data-theme="dark"] .postCard,
+:root[data-theme="dark"] .compactRow,
+:root[data-theme="dark"] .studioCard,
+:root[data-theme="dark"] .studioSnippet,
+:root[data-theme="dark"] .modalPanel { border-color: rgba(255,255,255,.10); }
+
+.metricCard { padding: 18px; }
+.metricCard div { border-radius: 20px; background: rgba(255,255,255,.62); }
+.metricCard strong { font-size: 36px; }
+
+.postCard, .compactRow, .studioCard { transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease; }
+.postCard:hover, .compactRow:hover, .studioCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 24px 58px rgba(39,35,58,.15);
+  border-color: rgba(124,58,237,.18);
+}
+:root[data-theme="dark"] .postCard:hover,
+:root[data-theme="dark"] .compactRow:hover,
+:root[data-theme="dark"] .studioCard:hover { box-shadow: 0 24px 58px rgba(0,0,0,.32); }
+
+.badge { border-radius: 999px; padding: 6px 10px; }
+
+.settingsDrawer {
+  background: rgba(255,255,255,.82);
+  backdrop-filter: var(--iosBlur);
+  border-left: 1px solid rgba(42,35,64,.10);
+}
+:root[data-theme="dark"] .settingsDrawer { background: rgba(18, 17, 31, .86); }
+.drawerSection select, .editGrid input, .editGrid select, .editGrid textarea {
+  min-height: 46px;
+  border-radius: 18px;
+  background: rgba(255,255,255,.72);
+}
+:root[data-theme="dark"] .drawerSection select,
+:root[data-theme="dark"] .editGrid input,
+:root[data-theme="dark"] .editGrid select,
+:root[data-theme="dark"] .editGrid textarea { background: rgba(24, 22, 38, .72); }
+
+.modalBackdrop { background: rgba(10, 10, 18, .42); backdrop-filter: blur(16px); }
+.modalCard { border-radius: 34px; box-shadow: 0 34px 90px rgba(0,0,0,.24); }
+.closeBtn { backdrop-filter: var(--iosBlur); }
+
+.bottomTabBar { display: none; }
+
+@media (max-width: 920px) {
+  body {
+    background:
+      radial-gradient(circle at 15% 0%, rgba(124,58,237,.13), transparent 22rem),
+      radial-gradient(circle at 95% 0%, rgba(0,169,157,.12), transparent 22rem),
+      linear-gradient(180deg, #fbfbff 0%, #f7f3ff 48%, #fffaf2 100%);
+  }
+  :root[data-theme="dark"] body {
+    background:
+      radial-gradient(circle at 15% 0%, rgba(124,58,237,.18), transparent 22rem),
+      radial-gradient(circle at 95% 0%, rgba(0,169,157,.14), transparent 22rem),
+      linear-gradient(180deg, #080812 0%, #101827 54%, #15111f 100%);
+  }
+  .mainArea { padding: 16px 14px 94px; }
+  .topbar {
+    position: sticky;
+    top: 0;
+    margin: -16px -14px 12px;
+    padding: 14px 14px 12px;
+    background: rgba(255,255,255,.68);
+    backdrop-filter: var(--iosBlur);
+    border-bottom: 1px solid rgba(35,31,54,.08);
+  }
+  :root[data-theme="dark"] .topbar {
+    background: rgba(12, 11, 22, .72);
+    border-bottom-color: rgba(255,255,255,.08);
+  }
+  .topbar h2 { font-size: 32px; }
+  .topbarActions {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 8px;
+    align-items: center;
+  }
+  .topSearch {
+    grid-column: 1 / -1;
+    width: 100%;
+    order: 2;
+    border-radius: 18px;
+    box-shadow: none;
+  }
+  .settingsBtn, .refreshBtn {
+    font-size: 0;
+    width: 44px;
+    height: 44px;
+    justify-content: center;
+    padding: 0;
+  }
+  .settingsBtn svg, .refreshBtn svg { margin: 0; }
+  .sidebar { width: min(84vw, 310px); border-radius: 0 30px 30px 0; }
+  .heroBento { gap: 12px; }
+  .heroMain { min-height: 250px; padding: 24px; border-radius: 32px; }
+  .heroMain h3 { font-size: 38px; }
+  .heroMain p { font-size: 14px; }
+  .orbCard, .metricCard, .glassPanel, .libraryHeader, .postCard, .compactRow, .studioCard, .studioSnippet, .modalPanel { border-radius: 24px; }
+  .metricGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .metricCard { padding: 15px; }
+  .metricCard strong { font-size: 30px; }
+  .metricCard div { width: 42px; height: 42px; border-radius: 16px; }
+  .postCard { padding: 14px; }
+  .postCard:hover, .compactRow:hover, .studioCard:hover { transform: none; }
+  .modalBackdrop { padding: 0; display: flex; align-items: flex-end; }
+  .modalCard { width: 100%; max-height: 92vh; overflow: auto; margin: 0; border-radius: 30px 30px 0 0; padding: 18px; }
+  .modalCard:before {
+    content: "";
+    display: block;
+    width: 44px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(120,116,135,.35);
+    margin: 0 auto 14px;
+  }
+  .modalHeader h3 { font-size: 26px; }
+  .settingsDrawer {
+    width: 100%;
+    max-width: none;
+    border-left: 0;
+    border-radius: 30px 30px 0 0;
+    bottom: 0;
+    top: auto;
+    max-height: 88vh;
+  }
+  .bottomTabBar {
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    z-index: 80;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 3px;
+    padding: 8px;
+    border-radius: 28px;
+    background: rgba(255,255,255,.78);
+    border: 1px solid rgba(35,31,54,.10);
+    box-shadow: 0 18px 48px rgba(39,35,58,.20);
+    backdrop-filter: var(--iosBlur);
+  }
+  :root[data-theme="dark"] .bottomTabBar { background: rgba(18, 17, 31, .82); border-color: rgba(255,255,255,.10); }
+  .bottomTabBar button {
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 3px;
+    min-height: 50px;
+    border-radius: 22px;
+    font-size: 11px;
+    font-weight: 800;
+  }
+  .bottomTabBar button.active {
+    color: white;
+    background: linear-gradient(135deg, var(--violet), var(--teal));
+    box-shadow: 0 10px 26px rgba(124,58,237,.25);
+  }
+}
+
+@media (min-width: 921px) {
+  .bottomTabBar { display: none !important; }
+}

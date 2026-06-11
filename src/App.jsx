@@ -332,7 +332,7 @@ export default function App() {
           <div className="brandMark"><Orbit size={23} /></div>
           <div>
             <h1>PostKeeper</h1>
-            <p>Aurora Workspace</p>
+            <p>Personal Library</p>
           </div>
         </div>
 
@@ -373,7 +373,7 @@ export default function App() {
           <div className="topbarActions">
             <div className="topSearch">
               <Search size={17} />
-              <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search implants, CBCT, hooks..." />
+              <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search posts, folders, recipes, travel..." />
             </div>
             <button className="iconBtn" title="Theme" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
               {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
@@ -387,7 +387,7 @@ export default function App() {
         {error && <Notice type="error" title="Connection issue" text={error} />}
 
         {loading ? (
-          <div className="loadingBlock">Loading Aurora...</div>
+          <div className="loadingBlock">Opening your library...</div>
         ) : (
           <>
             {tab === 'dashboard' && (
@@ -422,6 +422,18 @@ export default function App() {
           </>
         )}
       </main>
+
+      <nav className="bottomTabBar">
+        {nav.map(item => {
+          const Icon = item.icon
+          return (
+            <button key={item.id} className={tab === item.id ? 'active' : ''} onClick={() => openTab(item.id)}>
+              <Icon size={19} />
+              <span>{item.label}</span>
+            </button>
+          )
+        })}
+      </nav>
 
       {settingsOpen && (
         <SettingsDrawer
