@@ -25,6 +25,9 @@ const SORTS = [
   { value: 'account', label: 'Account' }
 ]
 
+const INITIAL_POST_LIMIT = 18
+const LOAD_MORE_STEP = 18
+
 function safe(value, fallback = '') {
   if (value === null || value === undefined) return fallback
   if (Array.isArray(value)) return value.join(', ')
@@ -588,12 +591,21 @@ function DashboardView({ stats, topics, accounts, recentPosts, studioPosts, onTa
 }
 
 function LibraryView({ title, subtitle, posts, total, viewMode, setViewMode, onPost, resetFilters }) {
+  const [visibleLimit, setVisibleLimit] = useState(INITIAL_POST_LIMIT)
+
+  useEffect(() => {
+    setVisibleLimit(INITIAL_POST_LIMIT)
+  }, [posts, viewMode])
+
+  const visiblePosts = posts.slice(0, visibleLimit)
+  const hasMore = posts.length > visiblePosts.length
+
   return (
     <section className="pageWrap">
       <div className="libraryHeader">
         <div>
           <h3>{title}</h3>
-          <p>{posts.length} result(s) from {total}. Advanced filters are in Controls.</p>
+          <p>{posts.length} result(s) from {total}. Showing {visiblePosts.length} now for faster mobile loading.</p>
         </div>
         <div>
           <button className="lightBtn" onClick={() => setViewMode(viewMode === 'cards' ? 'compact' : 'cards')}>
@@ -605,28 +617,58 @@ function LibraryView({ title, subtitle, posts, total, viewMode, setViewMode, onP
       </div>
 
       {posts.length === 0 ? <EmptyState title="No matching posts" text="Clear filters from Controls." /> : (
-        viewMode === 'compact'
-          ? <div className="compactResults">{posts.map(post => <CompactRow key={post.id} post={post} onOpen={() => onPost(post)} />)}</div>
-          : <div className="postGrid">{posts.map(post => <PostCard key={post.id} post={post} onOpen={() => onPost(post)} />)}</div>
+        <>
+          {viewMode === 'compact'
+            ? <div className="compactResults">{visiblePosts.map(post => <CompactRow key={post.id} post={post} onOpen={() => onPost(post)} />)}</div>
+            : <div className="postGrid">{visiblePosts.map(post => <PostCard key={post.id} post={post} onOpen={() => onPost(post)} />)}</div>
+          }
+          {hasMore && (
+            <div className="loadMoreWrap">
+              <button className="loadMoreBtn" onClick={() => setVisibleLimit(limit => limit + LOAD_MORE_STEP)}>
+                Load more posts
+                <span>{visiblePosts.length} / {posts.length}</span>
+              </button>
+            </div>
+          )}
+        </>
       )}
     </section>
   )
 }
 
 function StudioView({ posts, onPost }) {
+  const [visibleLimit, setVisibleLimit] = useState(INITIAL_POST_LIMIT)
+
+  useEffect(() => {
+    setVisibleLimit(INITIAL_POST_LIMIT)
+  }, [posts])
+
+  const visiblePosts = posts.slice(0, visibleLimit)
+  const hasMore = posts.length > visiblePosts.length
+
   return (
     <section className="pageWrap">
       <div className="libraryHeader studioHeroMini">
         <div>
           <h3>Creative Studio</h3>
-          <p>Hooks, scripts, captions, and patient education ideas.</p>
+          <p>Hooks, scripts, captions, and patient education ideas. Showing {visiblePosts.length} of {posts.length}.</p>
         </div>
       </div>
 
       {posts.length === 0 ? <EmptyState title="No studio content found" text="Generate scripts from Telegram buttons, then they will appear here." /> : (
-        <div className="studioGrid">
-          {posts.map(post => <StudioCard key={post.id} post={post} onOpen={() => onPost(post)} />)}
-        </div>
+        <>
+          <div className="studioGrid">
+            {visiblePosts.map(post => <StudioCard key={post.id} post={post} onOpen={() => onPost(post)} />)}
+          </div>
+          {hasMore && (
+            <div className="loadMoreWrap">
+              <button className="loadMoreBtn" onClick={() => setVisibleLimit(limit => limit + LOAD_MORE_STEP)}>
+                Load more studio posts
+                <span>{visiblePosts.length} / {posts.length}</span>
+              </button>
+            </div>
+          )}
+        </>
       )}
     </section>
   )
@@ -796,8 +838,8 @@ function StudioSnippet({ label, value }) {
 
 function MediaPreview({ url, type, compact = false }) {
   if (!url) return <div className={`mediaPlaceholder ${compact ? 'compact' : ''}`}><ImageIcon size={28} /><span>No media</span></div>
-  if (isVideo(type, url)) return <div className={`mediaWrap ${compact ? 'compact' : ''}`}><video src={url} controls={!compact} muted={compact} />{compact && <div className="videoPill"><PlayCircle size={15} /> Video</div>}</div>
-  return <div className={`mediaWrap ${compact ? 'compact' : ''}`}><img src={url} alt="Saved media" loading="lazy" /></div>
+  if (isVideo(type, url)) return <div className={`mediaWrap ${compact ? 'compact' : ''}`}><video src={url} controls={!compact} muted={compact} playsInline preload="metadata" />{compact && <div className="videoPill"><PlayCircle size={15} /> Video</div>}</div>
+  return <div className={`mediaWrap ${compact ? 'compact' : ''}`}><img src={url} alt="Saved media" loading="lazy" decoding="async" /></div>
 }
 
 function PostModal({ post, onClose, onUpdate }) {

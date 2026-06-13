@@ -713,3 +713,45 @@ body {
 @media (min-width: 921px) {
   .bottomTabBar { display: none !important; }
 }
+
+
+/* v8.4 stable speed patch: no layout redesign, only progressive loading */
+.loadMoreWrap {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0 6px;
+}
+.loadMoreBtn {
+  border: 0;
+  border-radius: 999px;
+  min-height: 48px;
+  padding: 0 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, var(--violet), var(--teal));
+  color: white;
+  font-weight: 900;
+  box-shadow: 0 16px 36px rgba(124, 58, 237, .22);
+  cursor: pointer;
+}
+.loadMoreBtn span {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.18);
+  font-size: 12px;
+}
+
+.mediaWrap video {
+  object-fit: cover;
+}
+
+@media (max-width: 700px) {
+  .loadMoreWrap {
+    padding-bottom: 22px;
+  }
+  .loadMoreBtn {
+    width: 100%;
+    justify-content: center;
+  }
+}
