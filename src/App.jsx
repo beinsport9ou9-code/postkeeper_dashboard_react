@@ -25,9 +25,6 @@ const SORTS = [
   { value: 'account', label: 'Account' }
 ]
 
-const INITIAL_POST_LIMIT = 18
-const LOAD_MORE_STEP = 18
-
 function safe(value, fallback = '') {
   if (value === null || value === undefined) return fallback
   if (Array.isArray(value)) return value.join(', ')
@@ -287,7 +284,7 @@ export default function App() {
     return rows
   }, [posts, tab, topicFilter, priorityFilter, mediaFilter, workspaceFilter, folderFilter, platformFilter, archiveFilter, accountFilter, tagFilter, query, sortBy])
 
-  const recentPosts = useMemo(() => posts.filter(post => !post.is_archived).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)).slice(0, 8), [posts])
+  const recentPosts = useMemo(() => posts.filter(post => !post.is_archived && (Number(post.media_count || 0) > 0 || getMedia(post).urls.length > 0)).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)).slice(0, 12), [posts])
   const studioPosts = useMemo(() => posts.filter(post => !post.is_archived && hasGenerated(post)).slice(0, 5), [posts])
 
   async function updatePost(id, changes) {
@@ -335,7 +332,7 @@ export default function App() {
           <div className="brandMark"><Orbit size={23} /></div>
           <div>
             <h1>PostKeeper</h1>
-            <p>Personal Library</p>
+            <p>Aurora Workspace</p>
           </div>
         </div>
 
@@ -376,7 +373,7 @@ export default function App() {
           <div className="topbarActions">
             <div className="topSearch">
               <Search size={17} />
-              <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search posts, folders, recipes, travel..." />
+              <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search posts, folders, topics..." />
             </div>
             <button className="iconBtn" title="Theme" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
               {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
@@ -390,7 +387,7 @@ export default function App() {
         {error && <Notice type="error" title="Connection issue" text={error} />}
 
         {loading ? (
-          <div className="loadingBlock">Opening your library...</div>
+          <div className="loadingBlock">Loading Aurora...</div>
         ) : (
           <>
             {tab === 'dashboard' && (
@@ -425,18 +422,6 @@ export default function App() {
           </>
         )}
       </main>
-
-      <nav className="bottomTabBar">
-        {nav.map(item => {
-          const Icon = item.icon
-          return (
-            <button key={item.id} className={tab === item.id ? 'active' : ''} onClick={() => openTab(item.id)}>
-              <Icon size={19} />
-              <span>{item.label}</span>
-            </button>
-          )
-        })}
-      </nav>
 
       {settingsOpen && (
         <SettingsDrawer
@@ -511,7 +496,7 @@ function Notice({ type, title, text }) {
 function DashboardView({ stats, topics, accounts, recentPosts, studioPosts, onTab, onTopic, onAccount, onPost }) {
   const cards = [
     { label: 'Saved ideas', value: stats.total, icon: BookOpen, onClick: () => onTab('posts'), tone: 'teal' },
-    { label: 'Media vault', value: stats.mediaFiles, icon: ImageIcon, onClick: () => onTab('media'), tone: 'violet' },
+    { label: 'Posts with media', value: stats.mediaPosts, icon: ImageIcon, onClick: () => onTab('media'), tone: 'violet' },
     { label: 'Creative scripts', value: stats.generated, icon: WandSparkles, onClick: () => onTab('studio'), tone: 'coral' },
     { label: 'Starred', value: stats.important, icon: Star, onClick: () => onTab('important'), tone: 'gold' }
   ]
@@ -536,8 +521,8 @@ function DashboardView({ stats, topics, accounts, recentPosts, studioPosts, onTa
             <span>saved ideas</span>
           </div>
           <div className="stackCards">
-            <button onClick={() => onTab('media')}><Video size={17} /> {stats.videos} video posts</button>
-            <button onClick={() => onTab('studio')}><Bookmark size={17} /> {stats.generated} reusable scripts</button>
+            <button onClick={() => onTab('media')}><ImageIcon size={17} /> {stats.mediaPosts} posts with media</button>
+            <button onClick={() => onTab('media')}><Bookmark size={17} /> {stats.mediaFiles} media files</button>
             <button onClick={() => onTab('important')}><Star size={17} /> {stats.important} starred references</button>
           </div>
         </div>
@@ -582,30 +567,26 @@ function DashboardView({ stats, topics, accounts, recentPosts, studioPosts, onTa
         </div>
       </div>
 
-      <SectionHeader title="Freshly Saved" actionLabel="Open library" onClick={() => onTab('posts')} />
-      <div className="postGrid">
-        {recentPosts.map(post => <PostCard key={post.id} post={post} onOpen={() => onPost(post)} />)}
-      </div>
+      <SectionHeader title="Visual Home" actionLabel="Open full library" onClick={() => onTab('posts')} />
+      <p className="homeHint">Home shows only posts that have saved images or videos. Older text-only posts stay safely inside Library.</p>
+      {recentPosts.length === 0 ? (
+        <EmptyState title="No media posts yet" text="New saved posts with images or videos will appear here. Text-only posts remain in Library." />
+      ) : (
+        <div className="postGrid">
+          {recentPosts.map(post => <PostCard key={post.id} post={post} onOpen={() => onPost(post)} />)}
+        </div>
+      )}
     </section>
   )
 }
 
 function LibraryView({ title, subtitle, posts, total, viewMode, setViewMode, onPost, resetFilters }) {
-  const [visibleLimit, setVisibleLimit] = useState(INITIAL_POST_LIMIT)
-
-  useEffect(() => {
-    setVisibleLimit(INITIAL_POST_LIMIT)
-  }, [posts, viewMode])
-
-  const visiblePosts = posts.slice(0, visibleLimit)
-  const hasMore = posts.length > visiblePosts.length
-
   return (
     <section className="pageWrap">
       <div className="libraryHeader">
         <div>
           <h3>{title}</h3>
-          <p>{posts.length} result(s) from {total}. Showing {visiblePosts.length} now for faster mobile loading.</p>
+          <p>{posts.length} result(s) from {total}. Library includes old text-only posts; use Media tab for visual posts only.</p>
         </div>
         <div>
           <button className="lightBtn" onClick={() => setViewMode(viewMode === 'cards' ? 'compact' : 'cards')}>
@@ -617,58 +598,28 @@ function LibraryView({ title, subtitle, posts, total, viewMode, setViewMode, onP
       </div>
 
       {posts.length === 0 ? <EmptyState title="No matching posts" text="Clear filters from Controls." /> : (
-        <>
-          {viewMode === 'compact'
-            ? <div className="compactResults">{visiblePosts.map(post => <CompactRow key={post.id} post={post} onOpen={() => onPost(post)} />)}</div>
-            : <div className="postGrid">{visiblePosts.map(post => <PostCard key={post.id} post={post} onOpen={() => onPost(post)} />)}</div>
-          }
-          {hasMore && (
-            <div className="loadMoreWrap">
-              <button className="loadMoreBtn" onClick={() => setVisibleLimit(limit => limit + LOAD_MORE_STEP)}>
-                Load more posts
-                <span>{visiblePosts.length} / {posts.length}</span>
-              </button>
-            </div>
-          )}
-        </>
+        viewMode === 'compact'
+          ? <div className="compactResults">{posts.map(post => <CompactRow key={post.id} post={post} onOpen={() => onPost(post)} />)}</div>
+          : <div className="postGrid">{posts.map(post => <PostCard key={post.id} post={post} onOpen={() => onPost(post)} />)}</div>
       )}
     </section>
   )
 }
 
 function StudioView({ posts, onPost }) {
-  const [visibleLimit, setVisibleLimit] = useState(INITIAL_POST_LIMIT)
-
-  useEffect(() => {
-    setVisibleLimit(INITIAL_POST_LIMIT)
-  }, [posts])
-
-  const visiblePosts = posts.slice(0, visibleLimit)
-  const hasMore = posts.length > visiblePosts.length
-
   return (
     <section className="pageWrap">
       <div className="libraryHeader studioHeroMini">
         <div>
           <h3>Creative Studio</h3>
-          <p>Hooks, scripts, captions, and patient education ideas. Showing {visiblePosts.length} of {posts.length}.</p>
+          <p>Hooks, scripts, captions, and patient education ideas.</p>
         </div>
       </div>
 
       {posts.length === 0 ? <EmptyState title="No studio content found" text="Generate scripts from Telegram buttons, then they will appear here." /> : (
-        <>
-          <div className="studioGrid">
-            {visiblePosts.map(post => <StudioCard key={post.id} post={post} onOpen={() => onPost(post)} />)}
-          </div>
-          {hasMore && (
-            <div className="loadMoreWrap">
-              <button className="loadMoreBtn" onClick={() => setVisibleLimit(limit => limit + LOAD_MORE_STEP)}>
-                Load more studio posts
-                <span>{visiblePosts.length} / {posts.length}</span>
-              </button>
-            </div>
-          )}
-        </>
+        <div className="studioGrid">
+          {posts.map(post => <StudioCard key={post.id} post={post} onOpen={() => onPost(post)} />)}
+        </div>
       )}
     </section>
   )
@@ -838,8 +789,8 @@ function StudioSnippet({ label, value }) {
 
 function MediaPreview({ url, type, compact = false }) {
   if (!url) return <div className={`mediaPlaceholder ${compact ? 'compact' : ''}`}><ImageIcon size={28} /><span>No media</span></div>
-  if (isVideo(type, url)) return <div className={`mediaWrap ${compact ? 'compact' : ''}`}><video src={url} controls={!compact} muted={compact} playsInline preload="metadata" />{compact && <div className="videoPill"><PlayCircle size={15} /> Video</div>}</div>
-  return <div className={`mediaWrap ${compact ? 'compact' : ''}`}><img src={url} alt="Saved media" loading="lazy" decoding="async" /></div>
+  if (isVideo(type, url)) return <div className={`mediaWrap ${compact ? 'compact' : ''}`}><video src={url} controls={!compact} muted={compact} />{compact && <div className="videoPill"><PlayCircle size={15} /> Video</div>}</div>
+  return <div className={`mediaWrap ${compact ? 'compact' : ''}`}><img src={url} alt="Saved media" loading="lazy" /></div>
 }
 
 function PostModal({ post, onClose, onUpdate }) {
