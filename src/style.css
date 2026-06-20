@@ -633,3 +633,56 @@ a { color: inherit; text-decoration: none; }
     justify-content: center;
   }
 }
+
+
+/* v11.1 Select dropdown visibility fix
+   Fixes invisible option text in Chrome/Windows dark UI.
+*/
+.organizerGrid select,
+.editGrid select,
+.drawerSection select {
+  color: var(--text) !important;
+  background-color: rgba(255,255,255,.92) !important;
+}
+
+.organizerGrid select option,
+.editGrid select option,
+.drawerSection select option {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+}
+
+.organizerGrid select option:checked,
+.editGrid select option:checked,
+.drawerSection select option:checked {
+  color: #ffffff !important;
+  background-color: #2563eb !important;
+}
+
+.organizerGrid select option:hover,
+.editGrid select option:hover,
+.drawerSection select option:hover {
+  color: #111827 !important;
+  background-color: #e5e7eb !important;
+}
+
+:root[data-theme="dark"] .organizerGrid select,
+:root[data-theme="dark"] .editGrid select,
+:root[data-theme="dark"] .drawerSection select {
+  color: #ffffff !important;
+  background-color: rgba(31, 29, 49, .96) !important;
+}
+
+:root[data-theme="dark"] .organizerGrid select option,
+:root[data-theme="dark"] .editGrid select option,
+:root[data-theme="dark"] .drawerSection select option {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+}
+
+:root[data-theme="dark"] .organizerGrid select option:checked,
+:root[data-theme="dark"] .editGrid select option:checked,
+:root[data-theme="dark"] .drawerSection select option:checked {
+  color: #ffffff !important;
+  background-color: #2563eb !important;
+}
