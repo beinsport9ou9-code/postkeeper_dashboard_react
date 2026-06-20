@@ -803,11 +803,92 @@ function PostModal({ post, onClose, onUpdate }) {
   const [workspace, setWorkspace] = useState(getWorkspace(post))
   const [folder, setFolder] = useState(getFolder(post))
   const [sourcePlatform, setSourcePlatform] = useState(getPlatform(post))
+  const [organizerWorkspace, setOrganizerWorkspace] = useState(getWorkspace(post))
+  const [organizerFolder, setOrganizerFolder] = useState(getFolder(post))
+  const [organizerTopic, setOrganizerTopic] = useState(getTopic(post))
+  const [organizerSubtopic, setOrganizerSubtopic] = useState(post.subtopic || '')
   const media = getMedia(post)
 
   function saveChanges() {
     onUpdate(post.id, { priority, main_topic: mainTopic, topic: mainTopic, subtopic, tags, personal_note: personalNote, workspace, folder, source_platform: sourcePlatform })
     setEditing(false)
+  }
+
+  const workspaceOptions = ['Clinic', 'Personal']
+
+  const folderOptions = organizerWorkspace === 'Clinic'
+    ? ['Dental', 'Cases', 'Courses', 'Marketing']
+    : ['Travel', 'Recipes', 'Ideas', 'Courses', 'Shopping', 'Kids', 'Personal']
+
+  const topicOptions = {
+    Dental: ['Implant Dentistry', 'Oral Surgery', 'Local Anesthesia', 'Surgical Extraction', 'CBCT', 'Prosthodontics', 'Endodontics', 'Periodontology'],
+    Cases: ['Surgical Cases', 'Implant Cases', 'Complications', 'Follow-up'],
+    Marketing: ['Content Ideas', 'Patient Education', 'Clinic Marketing', 'Scripts'],
+    Courses: ['Course', 'Workshop', 'Webinar', 'Conference', 'Training'],
+    Travel: ['Travel', 'Restaurants', 'Hotels', 'Visa', 'Itinerary', 'Flights', 'Places'],
+    Recipes: ['Recipes', 'Food and Cooking', 'Desserts', 'Drinks', 'Meal Ideas'],
+    Ideas: ['Ideas', 'Useful Tips', 'Inspiration', 'Reference'],
+    Shopping: ['Shopping', 'Products', 'Wishlist', 'Tools'],
+    Kids: ['Kids', 'School', 'Activities', 'Learning'],
+    Personal: ['Personal', 'Family', 'General Reference']
+  }
+
+  const subtopicOptions = {
+    'Implant Dentistry': ['Implant Planning', 'Bone Grafting', 'Sinus Lift', 'GBR', 'Full Arch', 'Prosthetic Components', 'Implant Complications'],
+    'Oral Surgery': ['Oral Surgery', 'Third Molars', 'Flap Design', 'Suturing', 'Biopsy', 'Cysts'],
+    'Local Anesthesia': ['Local Anesthesia', 'Articaine / Septocaine', 'Lidocaine', 'IAN Block', 'Infiltration'],
+    'Surgical Extraction': ['Surgical Extraction', 'Wisdom Tooth', 'Socket Management', 'Extraction Tips'],
+    'CBCT': ['CBCT Interpretation', 'Nerve Proximity', 'Anatomy', 'Radiology'],
+    Travel: ['Travel and Dining', 'Restaurant', 'Hotel', 'Visa', 'Itinerary', 'Airport / Flight'],
+    Restaurants: ['Restaurant', 'Dining', 'Cafe', 'Food Place'],
+    Hotels: ['Hotel', 'Accommodation', 'Family Stay'],
+    Recipes: ['Recipe', 'Chicken', 'Dessert', 'Breakfast', 'Easy Meal'],
+    'Food and Cooking': ['Recipe', 'Cooking Tip', 'Kitchen Idea'],
+    Course: ['Course', 'Dental Course', 'Online Course'],
+    Workshop: ['Workshop', 'Hands-on Training'],
+    Webinar: ['Webinar', 'Online Lecture']
+  }
+
+  function resetOrganizerForWorkspace(nextWorkspace) {
+    setOrganizerWorkspace(nextWorkspace)
+    const firstFolder = nextWorkspace === 'Clinic' ? 'Dental' : 'Travel'
+    const firstTopic = nextWorkspace === 'Clinic' ? 'Oral Surgery' : 'Travel'
+    const firstSubtopic = nextWorkspace === 'Clinic' ? 'Oral Surgery' : 'Travel and Dining'
+    setOrganizerFolder(firstFolder)
+    setOrganizerTopic(firstTopic)
+    setOrganizerSubtopic(firstSubtopic)
+  }
+
+  function updateOrganizerFolder(nextFolder) {
+    setOrganizerFolder(nextFolder)
+    const firstTopic = (topicOptions[nextFolder] || [nextFolder])[0]
+    const firstSubtopic = (subtopicOptions[firstTopic] || [firstTopic])[0]
+    setOrganizerTopic(firstTopic)
+    setOrganizerSubtopic(firstSubtopic)
+  }
+
+  function updateOrganizerTopic(nextTopic) {
+    setOrganizerTopic(nextTopic)
+    const firstSubtopic = (subtopicOptions[nextTopic] || [nextTopic])[0]
+    setOrganizerSubtopic(firstSubtopic)
+  }
+
+  function saveOrganization() {
+    const payload = {
+      workspace: organizerWorkspace,
+      folder: organizerFolder,
+      source_platform: 'Instagram',
+      main_topic: organizerTopic,
+      topic: organizerTopic,
+      subtopic: organizerSubtopic || organizerTopic
+    }
+
+    setWorkspace(payload.workspace)
+    setFolder(payload.folder)
+    setSourcePlatform(payload.source_platform)
+    setMainTopic(payload.main_topic)
+    setSubtopic(payload.subtopic)
+    onUpdate(post.id, payload)
   }
 
   function applyPreset(preset) {
@@ -948,18 +1029,62 @@ function PostModal({ post, onClose, onUpdate }) {
                 <Info label="Clinical Use" value={post.clinical_use} />
                 <Info label="Personal Note" value={post.personal_note} />
 
-                <div className="quickCategoryBox">
-                  <h5>Quick Category Fix</h5>
-                  <div className="quickCategoryGrid">
-                    <button onClick={() => applyPreset('dental')}>🦷 Dental</button>
-                    <button onClick={() => applyPreset('localAnesthesia')}>💉 Local Anesthesia</button>
-                    <button onClick={() => applyPreset('extraction')}>🦷 Extraction</button>
-                    <button onClick={() => applyPreset('implant')}>🔩 Implant</button>
-                    <button onClick={() => applyPreset('travel')}>✈️ Travel</button>
-                    <button onClick={() => applyPreset('recipes')}>🍳 Recipes</button>
-                    <button onClick={() => applyPreset('courses')}>📚 Courses</button>
-                    <button onClick={() => applyPreset('ideas')}>💡 Ideas</button>
-                    <button onClick={() => applyPreset('personal')}>⭐ Personal</button>
+                <div className="organizerPanel">
+                  <div className="organizerTitle">
+                    <h5>Organize this post</h5>
+                    <span>Fast manual fix when auto-classification is wrong</span>
+                  </div>
+
+                  <div className="organizerGrid">
+                    <label>
+                      <span>Workspace</span>
+                      <select value={organizerWorkspace} onChange={e => resetOrganizerForWorkspace(e.target.value)}>
+                        {workspaceOptions.map(option => <option key={option}>{option}</option>)}
+                      </select>
+                    </label>
+
+                    <label>
+                      <span>Folder</span>
+                      <select value={organizerFolder} onChange={e => updateOrganizerFolder(e.target.value)}>
+                        {folderOptions.map(option => <option key={option}>{option}</option>)}
+                      </select>
+                    </label>
+
+                    <label>
+                      <span>Topic</span>
+                      <select value={organizerTopic} onChange={e => updateOrganizerTopic(e.target.value)}>
+                        {(topicOptions[organizerFolder] || [organizerFolder]).map(option => <option key={option}>{option}</option>)}
+                      </select>
+                    </label>
+
+                    <label>
+                      <span>Subtopic</span>
+                      <select value={organizerSubtopic} onChange={e => setOrganizerSubtopic(e.target.value)}>
+                        {(subtopicOptions[organizerTopic] || [organizerTopic]).map(option => <option key={option}>{option}</option>)}
+                      </select>
+                    </label>
+                  </div>
+
+                  <div className="organizerActions">
+                    <button className="saveOrgBtn" onClick={saveOrganization}><Save size={15} /> Save Organization</button>
+                    <button onClick={() => {
+                      resetOrganizerForWorkspace('Clinic')
+                      setOrganizerFolder('Dental')
+                      setOrganizerTopic('Local Anesthesia')
+                      setOrganizerSubtopic('Local Anesthesia')
+                    }}>💉 Local Anesthesia</button>
+                    <button onClick={() => {
+                      resetOrganizerForWorkspace('Clinic')
+                      setOrganizerFolder('Dental')
+                      setOrganizerTopic('Implant Dentistry')
+                      setOrganizerSubtopic('Implant Planning')
+                    }}>🔩 Implant</button>
+                    <button onClick={() => {
+                      resetOrganizerForWorkspace('Personal')
+                      setOrganizerFolder('Travel')
+                      setOrganizerTopic('Travel')
+                      setOrganizerSubtopic('Travel and Dining')
+                    }}>✈️ Travel</button>
                   </div>
                 </div>
 

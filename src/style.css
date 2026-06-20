@@ -506,3 +506,130 @@ a { color: inherit; text-decoration: none; }
     grid-template-columns: 1fr;
   }
 }
+
+
+/* v11 Smart Organizer Panel */
+.organizerPanel {
+  margin: 18px 0 14px;
+  padding: 16px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(124,58,237,.10), rgba(0,169,157,.08));
+  border: 1px solid rgba(124,58,237,.16);
+  box-shadow: 0 12px 28px rgba(39,35,58,.07);
+}
+
+.organizerTitle {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.organizerTitle h5 {
+  margin: 0;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--violet);
+}
+
+.organizerTitle span {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+  text-align: right;
+}
+
+.organizerGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.organizerGrid label {
+  display: grid;
+  gap: 6px;
+}
+
+.organizerGrid label span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.organizerGrid select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid rgba(35,31,54,.12);
+  background: rgba(255,255,255,.78);
+  border-radius: 16px;
+  padding: 0 12px;
+  color: var(--text);
+  font-weight: 850;
+  outline: none;
+}
+
+.organizerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.organizerActions button {
+  border: 1px solid rgba(124,58,237,.16);
+  background: rgba(255,255,255,.74);
+  color: var(--text);
+  border-radius: 999px;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-weight: 900;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.organizerActions .saveOrgBtn {
+  background: linear-gradient(135deg, var(--violet), var(--teal));
+  color: white;
+  border-color: transparent;
+}
+
+:root[data-theme="dark"] .organizerPanel {
+  background: linear-gradient(135deg, rgba(124,58,237,.16), rgba(0,169,157,.10));
+  border-color: rgba(255,255,255,.10);
+}
+
+:root[data-theme="dark"] .organizerGrid select,
+:root[data-theme="dark"] .organizerActions button {
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.10);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .organizerActions .saveOrgBtn {
+  color: white;
+}
+
+@media (max-width: 700px) {
+  .organizerTitle {
+    display: grid;
+  }
+
+  .organizerTitle span {
+    text-align: left;
+  }
+
+  .organizerGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .organizerActions button {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}
