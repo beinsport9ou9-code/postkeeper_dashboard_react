@@ -810,6 +810,93 @@ function PostModal({ post, onClose, onUpdate }) {
     setEditing(false)
   }
 
+  function applyPreset(preset) {
+    const presets = {
+      dental: {
+        workspace: 'Clinic',
+        folder: 'Dental',
+        main_topic: getTopic(post) === 'General Knowledge' ? 'Oral Surgery' : getTopic(post),
+        topic: getTopic(post) === 'General Knowledge' ? 'Oral Surgery' : getTopic(post),
+        subtopic: post.subtopic || 'Dental',
+        source_platform: 'Instagram'
+      },
+      localAnesthesia: {
+        workspace: 'Clinic',
+        folder: 'Dental',
+        main_topic: 'Oral Surgery',
+        topic: 'Oral Surgery',
+        subtopic: 'Local Anesthesia',
+        source_platform: 'Instagram'
+      },
+      extraction: {
+        workspace: 'Clinic',
+        folder: 'Dental',
+        main_topic: 'Oral Surgery',
+        topic: 'Oral Surgery',
+        subtopic: 'Surgical Extraction',
+        source_platform: 'Instagram'
+      },
+      implant: {
+        workspace: 'Clinic',
+        folder: 'Dental',
+        main_topic: 'Implant Dentistry',
+        topic: 'Implant Dentistry',
+        subtopic: post.subtopic || 'Implant Dentistry',
+        source_platform: 'Instagram'
+      },
+      travel: {
+        workspace: 'Personal',
+        folder: 'Travel',
+        main_topic: 'Travel',
+        topic: 'Travel',
+        subtopic: post.subtopic || 'Travel and Dining',
+        source_platform: 'Instagram'
+      },
+      recipes: {
+        workspace: 'Personal',
+        folder: 'Recipes',
+        main_topic: 'Recipes',
+        topic: 'Recipes',
+        subtopic: post.subtopic || 'Food and Cooking',
+        source_platform: 'Instagram'
+      },
+      courses: {
+        workspace: 'Personal',
+        folder: 'Courses',
+        main_topic: 'Courses',
+        topic: 'Courses',
+        subtopic: post.subtopic || 'Course / Training',
+        source_platform: 'Instagram'
+      },
+      ideas: {
+        workspace: 'Personal',
+        folder: 'Ideas',
+        main_topic: 'Ideas',
+        topic: 'Ideas',
+        subtopic: post.subtopic || 'Ideas',
+        source_platform: 'Instagram'
+      },
+      personal: {
+        workspace: 'Personal',
+        folder: 'Personal',
+        main_topic: getTopic(post),
+        topic: getTopic(post),
+        subtopic: post.subtopic || 'Personal',
+        source_platform: 'Instagram'
+      }
+    }
+
+    const payload = presets[preset]
+    if (!payload) return
+
+    setWorkspace(payload.workspace)
+    setFolder(payload.folder)
+    setMainTopic(payload.main_topic)
+    setSubtopic(payload.subtopic)
+    setSourcePlatform(payload.source_platform)
+    onUpdate(post.id, payload)
+  }
+
   return (
     <div className="modalBackdrop">
       <div className="modalCard">
@@ -860,6 +947,22 @@ function PostModal({ post, onClose, onUpdate }) {
                 <Info label="Content Type" value={post.content_type} />
                 <Info label="Clinical Use" value={post.clinical_use} />
                 <Info label="Personal Note" value={post.personal_note} />
+
+                <div className="quickCategoryBox">
+                  <h5>Quick Category Fix</h5>
+                  <div className="quickCategoryGrid">
+                    <button onClick={() => applyPreset('dental')}>🦷 Dental</button>
+                    <button onClick={() => applyPreset('localAnesthesia')}>💉 Local Anesthesia</button>
+                    <button onClick={() => applyPreset('extraction')}>🦷 Extraction</button>
+                    <button onClick={() => applyPreset('implant')}>🔩 Implant</button>
+                    <button onClick={() => applyPreset('travel')}>✈️ Travel</button>
+                    <button onClick={() => applyPreset('recipes')}>🍳 Recipes</button>
+                    <button onClick={() => applyPreset('courses')}>📚 Courses</button>
+                    <button onClick={() => applyPreset('ideas')}>💡 Ideas</button>
+                    <button onClick={() => applyPreset('personal')}>⭐ Personal</button>
+                  </div>
+                </div>
+
                 <button className="editBtn" onClick={() => setEditing(true)}>Edit details</button>
               </>
             )}
