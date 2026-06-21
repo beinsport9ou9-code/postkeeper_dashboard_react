@@ -402,6 +402,8 @@ export default function App() {
                 onAccount={name => { setAccountFilter(name); openTab('posts') }}
                 onPost={setSelected}
                 setMediaFilter={setMediaFilter}
+                folderFilter={folderFilter}
+                setFolderFilter={setFolderFilter}
               />
             )}
 
@@ -415,6 +417,9 @@ export default function App() {
                 setViewMode={setViewMode}
                 onPost={setSelected}
                 resetFilters={resetFilters}
+                folderFilter={folderFilter}
+                setFolderFilter={setFolderFilter}
+                onTab={openTab}
               />
             )}
 
@@ -493,7 +498,41 @@ function Notice({ type, title, text }) {
   return <div className={`notice ${type}`}><CircleAlert size={18} /><div><strong>{title}</strong><p>{text}</p></div></div>
 }
 
-function DashboardView({ stats, topics, accounts, recentPosts, studioPosts, onTab, onTopic, onAccount, onPost }) {
+
+const QUICK_FOLDERS = ['All', 'Dental', 'Travel', 'Recipes', 'Courses', 'Ideas', 'Personal']
+
+function FolderQuickFilters({ activeFolder, onSelect, onTab }) {
+  return (
+    <div className="quickFolderBar">
+      <div>
+        <span>Quick folders</span>
+        <strong>{activeFolder === 'All' ? 'All posts' : activeFolder}</strong>
+      </div>
+      <div className="quickFolderPills">
+        {QUICK_FOLDERS.map(folder => (
+          <button
+            key={folder}
+            className={activeFolder === folder ? 'active' : ''}
+            onClick={() => {
+              onSelect(folder)
+              onTab('posts')
+            }}
+          >
+            {folder === 'All' && 'All'}
+            {folder === 'Dental' && '🦷 Dental'}
+            {folder === 'Travel' && '✈️ Travel'}
+            {folder === 'Recipes' && '🍳 Recipes'}
+            {folder === 'Courses' && '📚 Courses'}
+            {folder === 'Ideas' && '💡 Ideas'}
+            {folder === 'Personal' && '⭐ Personal'}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function DashboardView({ stats, topics, accounts, recentPosts, studioPosts, onTab, onTopic, onAccount, onPost, folderFilter, setFolderFilter }) {
   const cards = [
     { label: 'Saved ideas', value: stats.total, icon: BookOpen, onClick: () => onTab('posts'), tone: 'teal' },
     { label: 'Posts with media', value: stats.mediaPosts, icon: ImageIcon, onClick: () => onTab('media'), tone: 'violet' },
@@ -527,6 +566,8 @@ function DashboardView({ stats, topics, accounts, recentPosts, studioPosts, onTa
           </div>
         </div>
       </div>
+
+      <FolderQuickFilters activeFolder={folderFilter} onSelect={setFolderFilter} onTab={onTab} />
 
       <div className="metricGrid">
         {cards.map(card => {
@@ -580,7 +621,7 @@ function DashboardView({ stats, topics, accounts, recentPosts, studioPosts, onTa
   )
 }
 
-function LibraryView({ title, subtitle, posts, total, viewMode, setViewMode, onPost, resetFilters }) {
+function LibraryView({ title, subtitle, posts, total, viewMode, setViewMode, onPost, resetFilters, folderFilter, setFolderFilter, onTab }) {
   return (
     <section className="pageWrap">
       <div className="libraryHeader">
@@ -596,6 +637,8 @@ function LibraryView({ title, subtitle, posts, total, viewMode, setViewMode, onP
           <button className="lightBtn" onClick={resetFilters}>Reset</button>
         </div>
       </div>
+
+      <FolderQuickFilters activeFolder={folderFilter} onSelect={setFolderFilter} onTab={onTab} />
 
       {posts.length === 0 ? <EmptyState title="No matching posts" text="Clear filters from Controls." /> : (
         viewMode === 'compact'
