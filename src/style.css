@@ -369,6 +369,10 @@ a { color: inherit; text-decoration: none; }
   border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 10px 12px; display: inline-flex; align-items: center; gap: 7px; justify-content: center;
 }
 .segmented button.active, .chipCloud button:hover { background: linear-gradient(135deg, rgba(124,58,237,.14), rgba(0,169,157,.14)); color: var(--violet); border-color: transparent; }
+.recoveryFilters { grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 14px 0 18px; }
+.recoveryFilters button { display: flex; align-items: center; justify-content: center; gap: 7px; }
+.recoveryFilters b { font-size: 11px; padding: 2px 7px; border-radius: 999px; background: rgba(124,58,237,.1); }
+@media (max-width: 760px) { .recoveryFilters { grid-template-columns: 1fr 1fr; } }
 .resetBtn { width: 100%; justify-content: center; margin-top: 8px; }
 .chipCloud { display: flex; flex-wrap: wrap; gap: 8px; }
 .chipCloud b { background: rgba(124,58,237,.12); padding: 1px 6px; border-radius: 999px; }
