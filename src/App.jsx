@@ -16,6 +16,7 @@ const supabase = isConfigured ? createClient(supabaseUrl, supabaseAnonKey) : nul
 
 const PRIORITIES = ['All', 'High', 'Medium', 'Low']
 const MEDIA_FILTERS = ['All', 'With media', 'No media', 'Videos only', 'Images only']
+const RECOVERY_FILTERS = ['All', 'Needs recovery', 'Pending review', 'Ready']
 const ARCHIVE_FILTERS = ['Active', 'Archived', 'All']
 const SORTS = [
   { value: 'newest', label: 'Newest first' },
@@ -103,6 +104,11 @@ function hasGenerated(post) {
   )
 }
 
+function needsRecovery(post) {
+  const noMedia = Number(post?.media_count || 0) === 0 && getMedia(post).urls.length === 0
+  return noMedia && getPlatform(post) === 'Instagram' && Boolean(safe(post?.url))
+}
+
 function formatDate(value) {
   try { return value ? new Date(value).toLocaleString() : '' }
   catch (_) { return safe(value) }
@@ -132,6 +138,7 @@ export default function App() {
   const [topicFilter, setTopicFilter] = useState('All')
   const [priorityFilter, setPriorityFilter] = useState('All')
   const [mediaFilter, setMediaFilter] = useState('All')
+  const [recoveryFilter, setRecoveryFilter] = useState('All')
   const [workspaceFilter, setWorkspaceFilter] = useState('All')
   const [folderFilter, setFolderFilter] = useState('All')
   const [platformFilter, setPlatformFilter] = useState('All')
@@ -267,6 +274,10 @@ export default function App() {
     if (mediaFilter === 'Videos only') rows = rows.filter(hasVideo)
     if (mediaFilter === 'Images only') rows = rows.filter(post => hasImage(post) && !hasVideo(post))
 
+    if (recoveryFilter === 'Needs recovery') rows = rows.filter(needsRecovery)
+    if (recoveryFilter === 'Pending review') rows = rows.filter(post => getTopic(post) === 'Pending Review')
+    if (recoveryFilter === 'Ready') rows = rows.filter(post => !needsRecovery(post) && getTopic(post) !== 'Pending Review')
+
     const q = query.trim().toLowerCase()
     if (q) rows = rows.filter(post => searchBlob(post).includes(q))
 
@@ -282,7 +293,13 @@ export default function App() {
     })
 
     return rows
-  }, [posts, tab, topicFilter, priorityFilter, mediaFilter, workspaceFilter, folderFilter, platformFilter, archiveFilter, accountFilter, tagFilter, query, sortBy])
+  }, [posts, tab, topicFilter, priorityFilter, mediaFilter, recoveryFilter, workspaceFilter, folderFilter, platformFilter, archiveFilter, accountFilter, tagFilter, query, sortBy])
+
+  const recoveryStats = useMemo(() => ({
+    needsRecovery: posts.filter(needsRecovery).length,
+    pendingReview: posts.filter(post => getTopic(post) === 'Pending Review').length,
+    ready: posts.filter(post => !needsRecovery(post) && getTopic(post) !== 'Pending Review').length
+  }), [posts])
 
   const recentPosts = useMemo(() => posts.filter(post => !post.is_archived && (Number(post.media_count || 0) > 0 || getMedia(post).urls.length > 0)).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)).slice(0, 12), [posts])
   const studioPosts = useMemo(() => posts.filter(post => !post.is_archived && hasGenerated(post)).slice(0, 5), [posts])
@@ -303,6 +320,7 @@ export default function App() {
     setTopicFilter('All')
     setPriorityFilter('All')
     setMediaFilter('All')
+    setRecoveryFilter('All')
     setWorkspaceFilter('All')
     setFolderFilter('All')
     setPlatformFilter('All')
@@ -398,6 +416,9 @@ export default function App() {
                 recentPosts={recentPosts}
                 studioPosts={studioPosts}
                 onTab={openTab}
+                recoveryFilter={recoveryFilter}
+                setRecoveryFilter={setRecoveryFilter}
+                recoveryStats={recoveryStats}
                 onTopic={name => { setTopicFilter(name); openTab('posts') }}
                 onAccount={name => { setAccountFilter(name); openTab('posts') }}
                 onPost={setSelected}
@@ -442,6 +463,8 @@ export default function App() {
           setPriorityFilter={setPriorityFilter}
           mediaFilter={mediaFilter}
           setMediaFilter={setMediaFilter}
+          recoveryFilter={recoveryFilter}
+          setRecoveryFilter={setRecoveryFilter}
           workspaceFilter={workspaceFilter}
           setWorkspaceFilter={setWorkspaceFilter}
           availableWorkspaces={availableWorkspaces}
@@ -621,7 +644,7 @@ function DashboardView({ stats, topics, accounts, recentPosts, studioPosts, onTa
   )
 }
 
-function LibraryView({ title, subtitle, posts, total, viewMode, setViewMode, onPost, resetFilters, folderFilter, setFolderFilter, onTab }) {
+function LibraryView({ title, subtitle, posts, total, viewMode, setViewMode, onPost, resetFilters, folderFilter, setFolderFilter, onTab, recoveryFilter, setRecoveryFilter, recoveryStats }) {
   return (
     <section className="pageWrap">
       <div className="libraryHeader">
@@ -639,6 +662,13 @@ function LibraryView({ title, subtitle, posts, total, viewMode, setViewMode, onP
       </div>
 
       <FolderQuickFilters activeFolder={folderFilter} onSelect={setFolderFilter} onTab={onTab} />
+
+      <div className="segmented recoveryFilters" aria-label="Recovery filters">
+        <button className={recoveryFilter === 'All' ? 'active' : ''} onClick={() => setRecoveryFilter('All')}>All</button>
+        <button className={recoveryFilter === 'Needs recovery' ? 'active' : ''} onClick={() => setRecoveryFilter('Needs recovery')}>Needs recovery <b>{recoveryStats.needsRecovery}</b></button>
+        <button className={recoveryFilter === 'Pending review' ? 'active' : ''} onClick={() => setRecoveryFilter('Pending review')}>Pending review <b>{recoveryStats.pendingReview}</b></button>
+        <button className={recoveryFilter === 'Ready' ? 'active' : ''} onClick={() => setRecoveryFilter('Ready')}>Ready <b>{recoveryStats.ready}</b></button>
+      </div>
 
       {posts.length === 0 ? <EmptyState title="No matching posts" text="Clear filters from Controls." /> : (
         viewMode === 'compact'
@@ -673,7 +703,7 @@ function SettingsDrawer(props) {
     onClose, theme, setTheme, viewMode, setViewMode,
     topicFilter, setTopicFilter, availableTopics,
     priorityFilter, setPriorityFilter,
-    mediaFilter, setMediaFilter,
+    mediaFilter, setMediaFilter, recoveryFilter, setRecoveryFilter,
     workspaceFilter, setWorkspaceFilter, availableWorkspaces,
     folderFilter, setFolderFilter, availableFolders,
     platformFilter, setPlatformFilter, availablePlatforms,
@@ -709,6 +739,7 @@ function SettingsDrawer(props) {
           <label><span>Topic</span><select value={topicFilter} onChange={e => setTopicFilter(e.target.value)}>{availableTopics.map(x => <option key={x}>{x}</option>)}</select></label>
           <label><span>Priority</span><select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value)}>{PRIORITIES.map(x => <option key={x}>{x}</option>)}</select></label>
           <label><span>Media</span><select value={mediaFilter} onChange={e => setMediaFilter(e.target.value)}>{MEDIA_FILTERS.map(x => <option key={x}>{x}</option>)}</select></label>
+          <label><span>Recovery</span><select value={recoveryFilter} onChange={e => setRecoveryFilter(e.target.value)}>{RECOVERY_FILTERS.map(x => <option key={x}>{x}</option>)}</select></label>
           <label><span>Archive</span><select value={archiveFilter} onChange={e => setArchiveFilter(e.target.value)}>{ARCHIVE_FILTERS.map(x => <option key={x}>{x}</option>)}</select></label>
           <label><span>Workspace</span><select value={workspaceFilter} onChange={e => setWorkspaceFilter(e.target.value)}>{availableWorkspaces.map(x => <option key={x}>{x}</option>)}</select></label>
           <label><span>Folder</span><select value={folderFilter} onChange={e => setFolderFilter(e.target.value)}>{availableFolders.map(x => <option key={x}>{x}</option>)}</select></label>
